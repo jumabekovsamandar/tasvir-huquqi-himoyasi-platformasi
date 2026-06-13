@@ -74,16 +74,24 @@ export function AuthShell({
   );
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
 export function SocialAuthButtons() {
   return (
     <div className="space-y-3">
-      <button className="btn-secondary w-full justify-center py-3">
+      <a
+        href={`${API_URL}/api/auth/oneid`}
+        className="btn-secondary w-full justify-center py-3"
+      >
         <span className="flex h-5 w-5 items-center justify-center rounded bg-brand-600 text-[10px] font-bold text-white">
           ID
         </span>
         OneID orqali davom etish
-      </button>
-      <button className="btn-secondary w-full justify-center py-3">
+      </a>
+      <a
+        href={`${API_URL}/api/auth/google`}
+        className="btn-secondary w-full justify-center py-3"
+      >
         <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>
           <path
             fill="#4285F4"
@@ -103,7 +111,7 @@ export function SocialAuthButtons() {
           />
         </svg>
         Google orqali davom etish
-      </button>
+      </a>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { LegalDocType } from '@prisma/client';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
+import Anthropic from '@anthropic-ai/sdk';
 import { JwtAuthGuard } from '../../common/jwt-auth.guard';
 import { CurrentUser, AuthUser } from '../../common/current-user.decorator';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -30,14 +31,73 @@ const TITLES: Record<LegalDocType, string> = {
   LAWSUIT: 'Da’vo arizasi',
 };
 
+const DOC_LABEL: Record<LegalDocType, string> = {
+  WARNING_LETTER: 'ogohlantirish xati',
+  TAKEDOWN_REQUEST: 'tasvirni olib tashlash talabi',
+  PRETRIAL_CLAIM: 'sudgacha talabnoma',
+  LAWSUIT: 'da’vo arizasi',
+};
+
 /**
  * AI yuridik yordamchi — elektron dalillar asosida huquqiy hujjatlarni
- * shakllantiradi. Ishlab chiqarishda AI_LEGAL_ASSISTANT_API_KEY orqali
- * generativ modelga ulanadi; bu yerda shablon asosida matn yaratiladi.
+ * shakllantiradi. ANTHROPIC_API_KEY sozlanganda Claude modeliga ulanadi;
+ * aks holda shablon asosida matn yaratiladi.
  */
 @Injectable()
 class LegalAiService {
-  generate(dto: GenerateDto): string {
+  private readonly anthropic = process.env.ANTHROPIC_API_KEY
+    ? new Anthropic()
+    : null;
+
+  async generate(dto: GenerateDto): Promise<string> {
+    if (this.anthropic) {
+      try {
+        return await this.generateWithClaude(dto);
+      } catch {
+        // API xatosi — quyidagi shablon zaxirasiga o‘tamiz.
+      }
+    }
+    return this.template(dto);
+  }
+
+  private async generateWithClaude(dto: GenerateDto): Promise<string> {
+    const url = dto.infringementUrl ?? '[huquqbuzarlik havolasi]';
+    const ev = dto.evidenceCode ?? '[dalil kodi]';
+    const to = dto.recipient ?? '[manzil egasi]';
+
+    const system =
+      'Siz O‘zbekiston Respublikasi qonunchiligiga ixtisoslashgan yuridik yordamchisiz. ' +
+      'Tasvir huquqlari va shaxsiy ma\'lumotlar himoyasi bo‘yicha rasmiy, professional va ' +
+      'huquqiy kuchga ega hujjatlarni o‘zbek tilida tayyorlaysiz. Faqat hujjat matnini ' +
+      'qaytaring, qo‘shimcha izohsiz.';
+
+    const message = await this.anthropic!.messages.create({
+      model: 'claude-opus-4-8',
+      max_tokens: 4000,
+      system,
+      messages: [
+        {
+          role: 'user',
+          content:
+            `Quyidagi turdagi huquqiy hujjatni tayyorlang: ${DOC_LABEL[dto.type]}.\n` +
+            `Manzil egasi: ${to}\n` +
+            `Huquqbuzarlik havolasi: ${url}\n` +
+            `Elektron dalil kodi: ${ev}\n` +
+            `Holat: foydalanuvchining tasviri uning roziligisiz ushbu manzilda joylashtirilgan. ` +
+            `Hujjat rasmiy uslubda, tegishli qonun normalariga havola bilan tuzilsin.`,
+        },
+      ],
+    });
+
+    const text = message.content
+      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+      .map((b) => b.text)
+      .join('\n')
+      .trim();
+    return text || this.template(dto);
+  }
+
+  private template(dto: GenerateDto): string {
     const today = new Date().toLocaleDateString('uz-UZ');
     const url = dto.infringementUrl ?? '[huquqbuzarlik havolasi]';
     const ev = dto.evidenceCode ?? '[dalil kodi]';
@@ -69,7 +129,7 @@ class LegalController {
   /** Tanlangan turdagi huquqiy hujjatni AI yordamida yaratish. */
   @Post('generate')
   async generate(@CurrentUser() user: AuthUser, @Body() dto: GenerateDto) {
-    const content = this.ai.generate(dto);
+    const content = await this.ai.generate(dto);
     return this.prisma.legalDocument.create({
       data: {
         userId: user.id,

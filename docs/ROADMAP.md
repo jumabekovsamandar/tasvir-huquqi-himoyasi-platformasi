@@ -11,11 +11,13 @@ ekotizimini qurish va investitsiyaga tayyor mahsulotga aylantirish.
 - Arxitektura, API, DB va xavfsizlik hujjatlari.
 
 ## 🚧 Bosqich 1 — MVP (0–3 oy)
-- AWS S3 presigned upload integratsiyasi.
-- OneID va Google OAuth oqimlari.
-- Real deepfake detection modeli integratsiyasi.
-- Reverse image search (pHash + vektor qidiruv) ishga tushirish.
-- To‘lov tizimi (Click/Payme + xalqaro kartalar).
+- ✅ AWS S3 presigned upload integratsiyasi.
+- ✅ OneID va Google OAuth oqimlari.
+- ✅ AI yuridik yordamchi — Claude (`claude-opus-4-8`) integratsiyasi.
+- ✅ Deepfake detection AI endpoint ulanishi (zaxira evristika bilan).
+- 🔜 Real deepfake CV modelini ishga tushirish (`AI_DEEPFAKE_ENDPOINT`).
+- 🔜 Reverse image search (pHash + vektor qidiruv) ishga tushirish.
+- 🔜 To‘lov tizimi (Click/Payme + xalqaro kartalar).
 
 ## 🔜 Bosqich 2 — O‘sish (3–6 oy)
 - 24/7 fon monitoring worker’lari va navbat (BullMQ/Redis).

@@ -11,6 +11,7 @@ import { EvidenceModule } from './modules/evidence/evidence.module';
 import { LegalModule } from './modules/legal/legal.module';
 import { RtbfModule } from './modules/rtbf/rtbf.module';
 import { MarketplaceModule } from './modules/marketplace/marketplace.module';
+import { StorageModule } from './modules/storage/storage.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { MarketplaceModule } from './modules/marketplace/marketplace.module';
     LegalModule,
     RtbfModule,
     MarketplaceModule,
+    StorageModule,
   ],
 })
 export class AppModule {}

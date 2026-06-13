@@ -29,7 +29,34 @@ class ScanDto {
 @Injectable()
 class DeepfakeAiService {
   async analyze(sourceKey: string, mediaType: string) {
-    // TODO: real model inference (AI_DEEPFAKE_ENDPOINT)
+    // Ishlab chiqarishda haqiqiy CV modeliga (AI_DEEPFAKE_ENDPOINT) so‘rov yuboriladi.
+    const endpoint = process.env.AI_DEEPFAKE_ENDPOINT;
+    if (endpoint) {
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sourceKey, mediaType }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          return {
+            verdict: data.verdict as DeepfakeVerdict,
+            confidence: Math.round(data.confidence),
+            faceSwapScore: data.faceSwapScore,
+            montageScore: data.montageScore,
+            aiGeneratedScore: data.aiGeneratedScore,
+            metadataScore: data.metadataScore,
+            mediaType,
+            rawResult: data,
+          };
+        }
+      } catch {
+        // Tarmoq xatosi — quyidagi zaxira (fallback) baholashga o‘tamiz.
+      }
+    }
+
+    // Zaxira: endpoint sozlanmaganda deterministik mock baholash.
     const faceSwapScore = this.pseudoScore(sourceKey + 'face');
     const montageScore = this.pseudoScore(sourceKey + 'montage');
     const aiGeneratedScore = this.pseudoScore(sourceKey + 'ai');

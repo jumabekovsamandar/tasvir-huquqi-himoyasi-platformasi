@@ -8,9 +8,23 @@ Himoyalangan endpointlar `Authorization: Bearer <token>` talab qiladi.
 |-------|----------|--------|
 | POST | `/api/auth/register` | Email/parol orqali ro‘yxatdan o‘tish |
 | POST | `/api/auth/login` | Kirish, JWT token olish |
+| GET | `/api/auth/google` | Google OAuth oqimini boshlash (redirect) |
+| GET | `/api/auth/google/callback` | Google callback — token bilan frontendga qaytaradi |
+| GET | `/api/auth/oneid` | OneID OAuth oqimini boshlash (redirect) |
+| GET | `/api/auth/oneid/callback` | OneID callback — token bilan frontendga qaytaradi |
 | GET | `/api/users/me` | Joriy profil va obuna |
 
-> Qo‘shimcha: OneID va Google OAuth oqimlari (`/api/auth/oneid`, `/api/auth/google`).
+> OAuth callback `${CORS_ORIGIN}/auth/callback?token=<JWT>` manziliga qaytaradi;
+> frontend tokenni saqlab, dashboardga yo‘naltiradi.
+
+## Xavfsiz fayl saqlash (`/api/storage`)
+| Metod | Endpoint | Tavsif |
+|-------|----------|--------|
+| POST | `/api/storage/upload-url` | AWS S3 ga yuklash uchun presigned PUT URL |
+| GET | `/api/storage/download-url?key=` | Faylni ko‘rish uchun presigned GET URL |
+
+> Fayllar brauzerdan to‘g‘ridan-to‘g‘ri S3 ga shifrlangan holda yuklanadi
+> (`ServerSideEncryption: AES256`); maxfiy kalitlar mijozga oshkor qilinmaydi.
 
 ## Tasvir reyestri (`/api/images`)
 | Metod | Endpoint | Tavsif |
@@ -53,6 +67,10 @@ Himoyalangan endpointlar `Authorization: Bearer <token>` talab qiladi.
 | POST | `/api/legal/generate` | Huquqiy hujjat yaratish |
 | GET | `/api/legal` | Mening hujjatlarim |
 | PATCH | `/api/legal/:id/send` | Hujjatni yuborilgan deb belgilash |
+
+> `ANTHROPIC_API_KEY` sozlanganda hujjatlar Claude (`claude-opus-4-8`) modeli
+> bilan yaratiladi; aks holda shablon zaxirasi ishlatiladi. Deepfake tahlili
+> `AI_DEEPFAKE_ENDPOINT` ga ulanadi, sozlanmaganda evristik zaxiraga o‘tadi.
 
 ## Unutilish huquqi (`/api/rtbf`)
 | Metod | Endpoint | Tavsif |
