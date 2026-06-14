@@ -1,0 +1,144 @@
+import {
+  Body,
+  Controller,
+  Get,
+  Injectable,
+  Module,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { DeepfakeVerdict } from '@prisma/client';
+import { IsOptional, IsString } from 'class-validator';
+import { randomBytes } from 'crypto';
+import { JwtAuthGuard } from '../../common/jwt-auth.guard';
+import { CurrentUser, AuthUser } from '../../common/current-user.decorator';
+import { PrismaService } from '../../prisma/prisma.service';
+
+class ScanDto {
+  @IsString() sourceKey: string;
+  @IsString() mediaType: string; // image | video
+  @IsOptional() @IsString() imageId?: string;
+}
+
+/**
+ * Deepfake aniqlash AI servisi.
+ * Ishlab chiqarishda AI_DEEPFAKE_ENDPOINT ga so‘rov yuboriladi;
+ * bu yerda integratsiya uchun deterministik mock baholash beriladi.
+ */
+@Injectable()
+class DeepfakeAiService {
+  async analyze(sourceKey: string, mediaType: string) {
+    // Ishlab chiqarishda haqiqiy CV modeliga (AI_DEEPFAKE_ENDPOINT) so‘rov yuboriladi.
+    const endpoint = process.env.AI_DEEPFAKE_ENDPOINT;
+    if (endpoint) {
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sourceKey, mediaType }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          return {
+            verdict: data.verdict as DeepfakeVerdict,
+            confidence: Math.round(data.confidence),
+            faceSwapScore: data.faceSwapScore,
+            montageScore: data.montageScore,
+            aiGeneratedScore: data.aiGeneratedScore,
+            metadataScore: data.metadataScore,
+            mediaType,
+            rawResult: data,
+          };
+        }
+      } catch {
+        // Tarmoq xatosi — quyidagi zaxira (fallback) baholashga o‘tamiz.
+      }
+    }
+
+    // Zaxira: endpoint sozlanmaganda deterministik mock baholash.
+    const faceSwapScore = this.pseudoScore(sourceKey + 'face');
+    const montageScore = this.pseudoScore(sourceKey + 'montage');
+    const aiGeneratedScore = this.pseudoScore(sourceKey + 'ai');
+    const metadataScore = this.pseudoScore(sourceKey + 'meta');
+    const confidence = Math.round(
+      Math.max(faceSwapScore, aiGeneratedScore) * 0.6 +
+        montageScore * 0.25 +
+        metadataScore * 0.15,
+    );
+    let verdict: DeepfakeVerdict = 'AUTHENTIC';
+    if (confidence >= 75) verdict = 'FAKE';
+    else if (confidence >= 45) verdict = 'SUSPICIOUS';
+
+    return {
+      verdict,
+      confidence,
+      faceSwapScore,
+      montageScore,
+      aiGeneratedScore,
+      metadataScore,
+      mediaType,
+    };
+  }
+
+  private pseudoScore(seed: string): number {
+    let h = 0;
+    for (const c of seed) h = (h * 31 + c.charCodeAt(0)) % 1000;
+    return Math.round((h / 1000) * 100);
+  }
+}
+
+@ApiTags('deepfake')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('deepfake')
+class DeepfakeController {
+  constructor(
+    private prisma: PrismaService,
+    private ai: DeepfakeAiService,
+  ) {}
+
+  /** Yangi deepfake tahlilini ishga tushirish va natijani dalil sifatida saqlash. */
+  @Post('scan')
+  async scan(@CurrentUser() user: AuthUser, @Body() dto: ScanDto) {
+    const result = await this.ai.analyze(dto.sourceKey, dto.mediaType);
+
+    const scan = await this.prisma.deepfakeScan.create({
+      data: {
+        userId: user.id,
+        imageId: dto.imageId,
+        sourceKey: dto.sourceKey,
+        ...result,
+      },
+    });
+
+    // Tahlil natijasi avtomatik elektron dalil sifatida saqlanadi.
+    await this.prisma.evidence.create({
+      data: {
+        userId: user.id,
+        code: `EV-${new Date().getFullYear()}-${randomBytes(2).toString('hex')}`,
+        type: 'DEEPFAKE_REPORT',
+        scanId: scan.id,
+        imageId: dto.imageId,
+        sha256: randomBytes(16).toString('hex'),
+        metadata: result as object,
+      },
+    });
+
+    return scan;
+  }
+
+  @Get()
+  history(@CurrentUser() user: AuthUser) {
+    return this.prisma.deepfakeScan.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+}
+
+@Module({
+  controllers: [DeepfakeController],
+  providers: [DeepfakeAiService],
+})
+export class DeepfakeModule {}

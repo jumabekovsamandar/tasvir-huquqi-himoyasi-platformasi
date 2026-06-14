@@ -1,0 +1,424 @@
+// ImageRights.uz — PostgreSQL ma'lumotlar bazasi sxemasi (Prisma)
+// To‘liq tasvir huquqlari himoyasi ekotizimi uchun ma'lumotlar modeli.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────
+
+enum UserRole {
+  USER // oddiy fuqaro
+  CREATOR // bloger, influencer, san'atkor
+  LAWYER // advokat
+  AGENCY // reklama agentligi / OAV
+  GOV // davlat organi
+  ADMIN
+  SUPERADMIN
+}
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+  ONEID
+}
+
+enum SubscriptionPlan {
+  FREE
+  PROFESSIONAL
+  BUSINESS
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+}
+
+enum ImageStatus {
+  PENDING // tekshirilmoqda
+  VERIFIED // egalik tasdiqlangan
+  REJECTED
+  ARCHIVED
+}
+
+enum ConsentType {
+  EDITORIAL // tahririy
+  COMMERCIAL // tijorat
+  SOCIAL // ijtimoiy tarmoq
+  EXCLUSIVE // eksklyuziv
+}
+
+enum ConsentStatus {
+  ACTIVE
+  DENIED // taqiqlangan
+  REVOKED // bekor qilingan
+  EXPIRED
+}
+
+enum DeepfakeVerdict {
+  AUTHENTIC
+  SUSPICIOUS
+  FAKE
+}
+
+enum MatchStatus {
+  NEW // yangi topildi
+  REVIEWING
+  AUTHORIZED // ruxsat berilgan
+  UNAUTHORIZED // ruxsatsiz
+  CLAIM_SENT // da'vo yuborildi
+  RESOLVED // hal qilindi
+}
+
+enum EvidenceType {
+  SCREENSHOT
+  METADATA
+  DEEPFAKE_REPORT
+  MONITORING_REPORT
+}
+
+enum LegalDocType {
+  WARNING_LETTER // ogohlantirish xati
+  TAKEDOWN_REQUEST // olib tashlash talabi
+  PRETRIAL_CLAIM // sudgacha talabnoma
+  LAWSUIT // da'vo arizasi
+}
+
+enum LegalDocStatus {
+  DRAFT
+  SENT
+  RESPONDED
+  RESOLVED
+  ESCALATED
+}
+
+enum RtbfStatus {
+  SUBMITTED // havola yuborildi
+  DRAFTED // talabnoma tayyorlandi
+  AWAITING_PROVIDER
+  REMOVED // o‘chirildi
+  REJECTED
+}
+
+enum ListingStatus {
+  DRAFT
+  ACTIVE // sotuvda
+  SOLD // sotildi
+  PAUSED
+}
+
+enum DealStatus {
+  PENDING_PAYMENT
+  CONTRACT_SIGNED
+  COMPLETED
+  CANCELLED
+}
+
+// ─────────────────────────────────────────────────────────────
+// CORE: USERS & AUTH
+// ─────────────────────────────────────────────────────────────
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String?
+  fullName     String
+  phone        String?
+  avatarUrl    String?
+  role         UserRole     @default(USER)
+  provider     AuthProvider @default(EMAIL)
+  oneIdPinfl   String?      @unique // OneID PINFL identifikatori
+  emailVerified Boolean     @default(false)
+  twoFactorEnabled Boolean  @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  subscription Subscription?
+  images       Image[]
+  consents     Consent[]
+  deepfakeScans DeepfakeScan[]
+  monitoringJobs MonitoringJob[]
+  evidence     Evidence[]
+  legalDocs    LegalDocument[]
+  rtbfRequests RtbfRequest[]
+  listings     LicenseListing[]
+  buyerDeals   LicenseDeal[]   @relation("BuyerDeals")
+  auditLogs    AuditLog[]
+
+  @@index([role])
+}
+
+model Subscription {
+  id        String             @id @default(cuid())
+  userId    String             @unique
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      SubscriptionPlan   @default(FREE)
+  status    SubscriptionStatus @default(ACTIVE)
+  scansUsed Int                @default(0)
+  scanLimit Int                @default(5) // FREE: oyiga 5 ta tekshiruv
+  renewsAt  DateTime?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 1: TASVIR HUQUQI REYESTRI
+// ─────────────────────────────────────────────────────────────
+
+model Image {
+  id           String      @id @default(cuid())
+  ownerId      String
+  owner        User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title        String
+  storageKey   String // AWS S3 obyekt kaliti
+  thumbnailKey String?
+  mimeType     String
+  sizeBytes    Int
+  width        Int?
+  height       Int?
+  perceptualHash String?   // monitoring uchun pHash
+  sha256       String // fayl yaxlitligi
+  exifMetadata Json?
+  registryCode String      @unique // masalan IR-48F2A1
+  timestampedAt DateTime   @default(now()) // huquqiy vaqt tamg‘asi
+  status       ImageStatus @default(PENDING)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  consents     Consent[]
+  deepfakeScans DeepfakeScan[]
+  monitoringJobs MonitoringJob[]
+  evidence     Evidence[]
+  listings     LicenseListing[]
+
+  @@index([ownerId])
+  @@index([perceptualHash])
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 2: ROZILIK BOSHQARUVI
+// ─────────────────────────────────────────────────────────────
+
+model Consent {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imageId     String
+  image       Image         @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  partyName   String // kim foydalanadi
+  partyContact String?
+  type        ConsentType
+  status      ConsentStatus @default(ACTIVE)
+  commercial  Boolean       @default(false)
+  startsAt    DateTime      @default(now())
+  expiresAt   DateTime? // null = muddatsiz
+  revokedAt   DateTime?
+  terms       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([imageId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 3: DEEPFAKE ANIQLASH
+// ─────────────────────────────────────────────────────────────
+
+model DeepfakeScan {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imageId         String?
+  image           Image?          @relation(fields: [imageId], references: [id])
+  sourceKey       String // tahlil qilingan fayl (S3)
+  mediaType       String // image | video
+  verdict         DeepfakeVerdict
+  confidence      Float // 0-100 ishonchlilik foizi
+  faceSwapScore   Float?
+  montageScore    Float?
+  aiGeneratedScore Float?
+  metadataScore   Float?
+  rawResult       Json?
+  createdAt       DateTime        @default(now())
+
+  evidence Evidence[]
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 4: INTERNET MONITORING
+// ─────────────────────────────────────────────────────────────
+
+model MonitoringJob {
+  id         String          @id @default(cuid())
+  userId     String
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imageId    String
+  image      Image           @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  active     Boolean         @default(true)
+  lastRunAt  DateTime?
+  createdAt  DateTime        @default(now())
+
+  matches    MonitoringMatch[]
+
+  @@index([userId])
+}
+
+model MonitoringMatch {
+  id           String      @id @default(cuid())
+  jobId        String
+  job          MonitoringJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  url          String
+  domain       String
+  similarity   Float // moslik foizi
+  screenshotKey String? // S3 dagi screenshot
+  foundAt      DateTime    @default(now())
+  status       MatchStatus @default(NEW)
+  createdAt    DateTime    @default(now())
+
+  evidence Evidence[]
+
+  @@index([jobId])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 5: ELEKTRON DALILLAR OMBORI
+// ─────────────────────────────────────────────────────────────
+
+model Evidence {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code         String       @unique // EV-2026-0481
+  type         EvidenceType
+  imageId      String?
+  image        Image?       @relation(fields: [imageId], references: [id])
+  matchId      String?
+  match        MonitoringMatch? @relation(fields: [matchId], references: [id])
+  scanId       String?
+  scan         DeepfakeScan?    @relation(fields: [scanId], references: [id])
+  storageKey   String? // dalil fayli (S3)
+  metadata     Json?
+  sha256       String // buzilmaslik isboti
+  timestampedAt DateTime    @default(now()) // huquqiy vaqt tamg‘asi
+  createdAt    DateTime     @default(now())
+
+  legalDocs LegalDocument[] @relation("EvidenceDocs")
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 6: AI YURIDIK YORDAMCHI
+// ─────────────────────────────────────────────────────────────
+
+model LegalDocument {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        LegalDocType
+  title       String
+  recipient   String?
+  content     String // AI tomonidan yaratilgan matn
+  status      LegalDocStatus @default(DRAFT)
+  sentAt      DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  evidence Evidence[] @relation("EvidenceDocs")
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 7: UNUTILISH HUQUQI
+// ─────────────────────────────────────────────────────────────
+
+model RtbfRequest {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetUrl   String
+  provider    String? // aniqlangan mas'ul provayder
+  status      RtbfStatus @default(SUBMITTED)
+  progress    Int        @default(0) // 0-100
+  notes       String?
+  resolvedAt  DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 8: LITSENZIYALASH BOZORI
+// ─────────────────────────────────────────────────────────────
+
+model LicenseListing {
+  id          String        @id @default(cuid())
+  sellerId    String
+  seller      User          @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  imageId     String
+  image       Image         @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  title       String
+  licenseType ConsentType
+  priceUzs    BigInt
+  status      ListingStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  deals LicenseDeal[]
+
+  @@index([sellerId])
+  @@index([status])
+}
+
+model LicenseDeal {
+  id          String     @id @default(cuid())
+  listingId   String
+  listing     LicenseListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyerId     String
+  buyer       User       @relation("BuyerDeals", fields: [buyerId], references: [id])
+  amountUzs   BigInt
+  status      DealStatus @default(PENDING_PAYMENT)
+  contractKey String? // imzolangan elektron shartnoma (S3)
+  signedAt    DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([buyerId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// XAVFSIZLIK: AUDIT LOG
+// ─────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String // masalan: IMAGE_REGISTERED, CONSENT_REVOKED
+  entityType String
+  entityId   String?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
