@@ -13,7 +13,7 @@ export function Features() {
             Tasvir huquqlarini himoya qilishning to‘liq to‘plami
           </h2>
           <p className="mt-4 text-lg text-ink-600">
-            Ro‘yxatga olishdan litsenziyalashgacha — sakkizta kuchli modul bitta
+            Ro‘yxatga olishdan litsenziyalashgacha — yettita kuchli modul bitta
             platformada.
           </p>
         </Reveal>
