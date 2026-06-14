@@ -1,8 +1,11 @@
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { Reveal } from "@/components/ui/Reveal";
 
 export function CtaBanner() {
+  const t = useTranslations("cta");
+
   return (
     <section className="pb-24">
       <div className="container-px">
@@ -11,24 +14,23 @@ export function CtaBanner() {
             <div className="aurora pointer-events-none absolute inset-0 opacity-70" />
             <div className="relative">
               <h2 className="mx-auto max-w-2xl text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Tasviringizni bugunoq himoya qilishni boshlang
+                {t("title")}
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-lg text-white/70">
-                Bir necha daqiqada ro‘yxatdan o‘ting va tasvir huquqlaringizni
-                sun'iy intellekt nazoratiga oling.
+                {t("subtitle")}
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Link
                   href="/auth/register"
                   className="btn bg-white px-6 py-3.5 text-base text-ink-900 hover:bg-ink-100"
                 >
-                  Bepul boshlash <ArrowRight className="h-4 w-4" />
+                  {t("primary")} <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/dashboard"
                   className="btn border border-white/20 px-6 py-3.5 text-base text-white hover:bg-white/10"
                 >
-                  Demo dashboard
+                  {t("secondary")}
                 </Link>
               </div>
             </div>

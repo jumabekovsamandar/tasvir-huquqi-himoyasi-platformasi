@@ -1,11 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { ArrowRight, PlayCircle, ScanFace, ShieldCheck, Sparkles } from "lucide-react";
-import { STATS } from "@/lib/constants";
+import { Link } from "@/i18n/navigation";
+
+type Stat = { value: string; label: string };
 
 export function Hero() {
+  const t = useTranslations("hero");
+  const stats = t.raw("stats") as Stat[];
   return (
     <section className="relative overflow-hidden pt-32 pb-20 sm:pt-40 lg:pt-44">
       {/* background */}
@@ -23,7 +27,7 @@ export function Hero() {
             >
               <span className="eyebrow">
                 <Sparkles className="h-3.5 w-3.5 text-brand-500" />
-                Markaziy Osiyodagi birinchi tasvir huquqlari ekotizimi
+                {t("badge")}
               </span>
             </motion.div>
 
@@ -33,9 +37,9 @@ export function Hero() {
               transition={{ duration: 0.7, delay: 0.05 }}
               className="mt-6 text-4xl font-extrabold leading-[1.05] tracking-tight text-ink-900 sm:text-5xl lg:text-6xl"
             >
-              Raqamli dunyoda tasvir{" "}
-              <span className="gradient-text">huquqlaringiz</span>
-              <br className="hidden sm:block" /> kafolati
+              {t("titlePre")}{" "}
+              <span className="gradient-text">{t("titleHighlight")}</span>
+              <br className="hidden sm:block" /> {t("titlePost")}
             </motion.h1>
 
             <motion.p
@@ -44,9 +48,7 @@ export function Hero() {
               transition={{ duration: 0.7, delay: 0.12 }}
               className="mt-6 max-w-xl text-lg leading-relaxed text-ink-600"
             >
-              Sun'iy intellekt yordamida suratingizni himoya qiling, deepfake
-              holatlarini aniqlang va tasvir huquqlaringizni bir platformada
-              nazorat qiling.
+              {t("subtitle")}
             </motion.p>
 
             <motion.div
@@ -56,13 +58,13 @@ export function Hero() {
               className="mt-8 flex flex-col gap-3 sm:flex-row"
             >
               <Link href="/auth/register" className="btn-primary px-6 py-3.5 text-base">
-                Bepul boshlash
+                {t("ctaPrimary")}
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link href="#solution" className="btn-secondary px-6 py-3.5 text-base">
+              <a href="#solution" className="btn-secondary px-6 py-3.5 text-base">
                 <PlayCircle className="h-4 w-4" />
-                Demo ko‘rish
-              </Link>
+                {t("ctaSecondary")}
+              </a>
             </motion.div>
 
             <motion.dl
@@ -71,7 +73,7 @@ export function Hero() {
               transition={{ duration: 0.8, delay: 0.3 }}
               className="mt-12 grid max-w-lg grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-4"
             >
-              {STATS.map((s) => (
+              {stats.map((s) => (
                 <div key={s.label}>
                   <dt className="text-2xl font-bold text-ink-900">{s.value}</dt>
                   <dd className="mt-1 text-xs font-medium text-ink-500">
@@ -94,10 +96,10 @@ export function Hero() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm font-semibold">
                     <ScanFace className="h-4 w-4 text-brand-300" />
-                    Deepfake tahlili
+                    {t("demo.title")}
                   </div>
                   <span className="rounded-full bg-red-500/15 px-2.5 py-1 text-xs font-semibold text-red-300">
-                    Xavf aniqlandi
+                    {t("demo.risk")}
                   </span>
                 </div>
 
@@ -108,14 +110,14 @@ export function Hero() {
                 </div>
 
                 <div className="mt-4 space-y-3">
-                  <Meter label="Yuz almashtirish" value={92} tone="red" />
-                  <Meter label="Video montaj" value={68} tone="amber" />
-                  <Meter label="AI-generativ kontent" value={88} tone="red" />
+                  <Meter label={t("demo.meterFaceSwap")} value={92} tone="red" />
+                  <Meter label={t("demo.meterVideoEdit")} value={68} tone="amber" />
+                  <Meter label={t("demo.meterAiContent")} value={88} tone="red" />
                 </div>
 
                 <div className="mt-4 flex items-center justify-between rounded-2xl bg-white/5 p-3 text-sm">
-                  <span className="text-white/70">Umumiy ishonchlilik</span>
-                  <span className="font-bold text-red-300">94% soxta</span>
+                  <span className="text-white/70">{t("demo.confidence")}</span>
+                  <span className="font-bold text-red-300">{t("demo.fake")}</span>
                 </div>
               </div>
             </div>
@@ -131,9 +133,9 @@ export function Hero() {
               </span>
               <div>
                 <div className="text-xs font-semibold text-ink-900">
-                  Huquq ro‘yxatdan o‘tdi
+                  {t("demo.badgeTitle")}
                 </div>
-                <div className="text-[11px] text-ink-500">Vaqt tamg‘asi bilan</div>
+                <div className="text-[11px] text-ink-500">{t("demo.badgeSubtitle")}</div>
               </div>
             </motion.div>
           </motion.div>

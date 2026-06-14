@@ -1,26 +1,28 @@
+import { useTranslations } from "next-intl";
 import { AlertTriangle, EyeOff, ImageOff, UserX } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
-import { PROBLEMS } from "@/lib/constants";
 
 const ICONS = [AlertTriangle, ImageOff, EyeOff, UserX];
 
+type Item = { title: string; description: string };
+
 export function Problem() {
+  const t = useTranslations("problem");
+  const items = t.raw("items") as Item[];
+
   return (
     <section className="border-y border-ink-100 bg-ink-50/60 py-20 sm:py-28">
       <div className="container-px">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <span className="eyebrow">Muammo</span>
+          <span className="eyebrow">{t("eyebrow")}</span>
           <h2 className="mt-5 text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">
-            Raqamli dunyoda tasviringiz xavf ostida
+            {t("title")}
           </h2>
-          <p className="mt-4 text-lg text-ink-600">
-            Sun'iy intellekt rivojlanishi bilan suratlaringizni nazoratsiz
-            ishlatish va soxtalashtirish osonlashdi.
-          </p>
+          <p className="mt-4 text-lg text-ink-600">{t("subtitle")}</p>
         </Reveal>
 
         <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {PROBLEMS.map((p, i) => {
+          {items.map((p, i) => {
             const Icon = ICONS[i];
             return (
               <Reveal key={p.title} delay={i * 0.08}>

@@ -1,0 +1,371 @@
+{
+  "metadata": {
+    "title": "ImageRights.uz — Your Image. Your Rights. Your Protection.",
+    "description": "Central Asia's first professional image rights protection platform. Protect your photos with AI, detect deepfakes and keep your image rights under control.",
+    "keywords": "image rights|deepfake detection|image rights|LegalTech|AI law|personal data protection|Uzbekistan",
+    "ogTitle": "ImageRights.uz — Image rights protection platform",
+    "ogDescription": "Protect your photos with AI, detect deepfakes and keep your image rights under control.",
+    "ogLocale": "en_US"
+  },
+  "nav": {
+    "links": [
+      { "label": "Features", "href": "#features" },
+      { "label": "Solution", "href": "#solution" },
+      { "label": "Pricing", "href": "#pricing" },
+      { "label": "Customers", "href": "#testimonials" },
+      { "label": "FAQ", "href": "#faq" }
+    ],
+    "login": "Sign in",
+    "register": "Get started free",
+    "menu": "Menu"
+  },
+  "languageSwitcher": {
+    "label": "Select language"
+  },
+  "hero": {
+    "badge": "Central Asia's first image rights ecosystem",
+    "titlePre": "Your guarantee of image",
+    "titleHighlight": "rights",
+    "titlePost": "in the digital world",
+    "subtitle": "Protect your photos with artificial intelligence, detect deepfakes and manage all your image rights on a single platform.",
+    "ctaPrimary": "Get started free",
+    "ctaSecondary": "Watch demo",
+    "stats": [
+      { "value": "10,000+", "label": "Registered images" },
+      { "value": "94.7%", "label": "Deepfake detection rate" },
+      { "value": "24/7", "label": "Internet monitoring" },
+      { "value": "<3 min", "label": "Document preparation time" }
+    ],
+    "demo": {
+      "title": "Deepfake analysis",
+      "risk": "Risk detected",
+      "meterFaceSwap": "Face swap",
+      "meterVideoEdit": "Video editing",
+      "meterAiContent": "AI-generated content",
+      "confidence": "Overall confidence",
+      "fake": "94% fake",
+      "badgeTitle": "Rights registered",
+      "badgeSubtitle": "With a timestamp"
+    }
+  },
+  "problem": {
+    "eyebrow": "Problem",
+    "title": "Your image is at risk in the digital world",
+    "subtitle": "With the rise of artificial intelligence, using and faking your photos without permission has become easier than ever.",
+    "items": [
+      {
+        "title": "Deepfake threat",
+        "description": "Fake videos created with artificial intelligence put your reputation and safety at risk."
+      },
+      {
+        "title": "Unauthorized image sharing",
+        "description": "Your photos are being used in ads, websites and social media without your consent."
+      },
+      {
+        "title": "Privacy violations",
+        "description": "Your personal photos spread uncontrollably, violating your right to privacy."
+      },
+      {
+        "title": "Image rights infringement",
+        "description": "Proving an infringement and collecting evidence is complex, slow and expensive."
+      }
+    ]
+  },
+  "solution": {
+    "eyebrow": "Solution",
+    "title": "A single smart platform for image rights",
+    "subtitle": "ImageRights.uz combines protection, monitoring, evidence and legal support into one professional ecosystem — you don't need to go anywhere else.",
+    "points": [
+      {
+        "title": "Full control on one platform",
+        "description": "From registration to court — the entire lifecycle of your image rights in a single system."
+      },
+      {
+        "title": "The power of artificial intelligence",
+        "description": "Deepfake detection, face recognition and reverse image search models spot threats within seconds."
+      },
+      {
+        "title": "Legally valid evidence",
+        "description": "Every screenshot and metadata is stored with a timestamp and can be used as evidence in court."
+      },
+      {
+        "title": "Automated legal assistance",
+        "description": "The AI legal assistant prepares professional legal documents in just a few minutes."
+      }
+    ],
+    "flow": [
+      {
+        "title": "Upload and register",
+        "desc": "The image is added to the registry with a timestamp."
+      },
+      {
+        "title": "AI monitors",
+        "desc": "The internet is scanned 24/7 and deepfakes are detected."
+      },
+      {
+        "title": "Evidence is collected",
+        "desc": "Screenshots and metadata are stored with legal validity."
+      },
+      {
+        "title": "Legal action is taken",
+        "desc": "AI prepares the warning letter and the claim."
+      }
+    ]
+  },
+  "features": {
+    "eyebrow": "Features",
+    "title": "A complete toolkit to protect image rights",
+    "subtitle": "From registration to licensing — seven powerful modules on one platform.",
+    "learnMore": "Learn more",
+    "items": [
+      {
+        "title": "Image Rights Registry",
+        "description": "Upload your photo, confirm ownership and officially register your image rights — with a timestamp."
+      },
+      {
+        "title": "Electronic Consent System",
+        "description": "Grant or deny usage, set a commercial license and term, and revoke it at any time."
+      },
+      {
+        "title": "Deepfake Detection",
+        "description": "Detect face swaps, video editing and AI-generated content with a confidence percentage."
+      },
+      {
+        "title": "Internet Monitoring",
+        "description": "Find copies of your image online using reverse image search — with link, date and screenshot."
+      },
+      {
+        "title": "Electronic Evidence Base",
+        "description": "Screenshots, metadata, timestamps and reports are stored as legally valid electronic evidence."
+      },
+      {
+        "title": "AI Claim Generator",
+        "description": "Automatically generate warning letters, takedown requests, pre-trial demands and claim filings."
+      },
+      {
+        "title": "Image Licensing Marketplace",
+        "description": "Sell the right to use your images; companies buy licenses and sign an electronic contract."
+      }
+    ]
+  },
+  "pricing": {
+    "eyebrow": "Pricing",
+    "title": "Choose the plan that fits your needs",
+    "subtitle": "Start free and scale as you grow. No hidden fees.",
+    "popular": "Most popular",
+    "plans": [
+      {
+        "price": "0",
+        "period": "UZS / month",
+        "tagline": "To try out personal protection",
+        "cta": "Get started free",
+        "features": [
+          "5 checks per month",
+          "Register 1 image",
+          "Basic deepfake scanner",
+          "Email support"
+        ]
+      },
+      {
+        "price": "149,000",
+        "period": "UZS / month",
+        "tagline": "For bloggers, influencers and artists",
+        "cta": "Buy Professional",
+        "features": [
+          "Unlimited checks",
+          "Full deepfake reports",
+          "24/7 internet monitoring",
+          "Electronic evidence vault",
+          "AI claim generator",
+          "Priority support"
+        ]
+      },
+      {
+        "price": "990,000",
+        "period": "UZS / month",
+        "tagline": "For agencies and media organizations",
+        "cta": "Connect your team",
+        "features": [
+          "Everything in Professional",
+          "Team access (10 members)",
+          "Brand monitoring",
+          "Licensing marketplace",
+          "API access",
+          "Dedicated manager"
+        ]
+      },
+      {
+        "price": "Custom",
+        "period": "pricing",
+        "tagline": "Government bodies and large companies",
+        "cta": "Contact sales",
+        "features": [
+          "Custom solutions",
+          "Custom integrations (OneID, ERP)",
+          "Unlimited members",
+          "SLA guarantee",
+          "On-premise option",
+          "Custom AI models"
+        ]
+      }
+    ]
+  },
+  "testimonials": {
+    "eyebrow": "Customer reviews",
+    "title": "Professionals trust ImageRights.uz",
+    "subtitle": "Influencers, journalists, lawyers and agencies protect their images with us.",
+    "items": [
+      {
+        "role": "Influencer · 1.2M followers",
+        "quote": "My photos were used for ads without permission. ImageRights collected the evidence in a day and prepared a takedown request. Now I feel at ease."
+      },
+      {
+        "role": "Sports journalist",
+        "quote": "The deepfake detection feature is truly professional. We learned about a fake video being spread before anyone else."
+      },
+      {
+        "role": "Attorney · Law firm",
+        "quote": "The electronic evidence base saves my time for my clients. The documents fully comply with court requirements."
+      },
+      {
+        "role": "Advertising agency director",
+        "quote": "Through the licensing marketplace we legally buy image rights from models. Everything is transparent and electronic."
+      }
+    ]
+  },
+  "faq": {
+    "eyebrow": "Q&A",
+    "title": "Frequently asked questions",
+    "items": [
+      {
+        "question": "How does ImageRights.uz work?",
+        "answer": "You upload your photo and confirm your ownership. The system adds it to the registry with a timestamp, monitors the internet, detects deepfakes and, if an infringement is found, automatically prepares legal documents."
+      },
+      {
+        "question": "How accurate is deepfake detection?",
+        "answer": "Our AI models analyze face swaps, video editing and generative content, showing a confidence percentage for each result. The analysis results are stored as electronic evidence."
+      },
+      {
+        "question": "Are the generated documents legally valid?",
+        "answer": "Yes. All screenshots and metadata are stored with a timestamp and prepared in accordance with the laws of Uzbekistan for use as evidence in pre-trial and court proceedings."
+      },
+      {
+        "question": "Is my data safe?",
+        "answer": "We use end-to-end encryption, RBAC access control, audit logs and secure file storage. Your images are used only with your permission."
+      },
+      {
+        "question": "How can I sign in?",
+        "answer": "You can register via OneID, Google or email/password. The OneID integration provides official identification for citizens of Uzbekistan."
+      },
+      {
+        "question": "What's included in the free plan?",
+        "answer": "The Free plan includes 5 checks per month, registration of 1 image and a basic deepfake scanner. Upgrade to Professional for unlimited features."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Start protecting your image today",
+    "subtitle": "Sign up in just a few minutes and put your image rights under the control of artificial intelligence.",
+    "primary": "Get started free",
+    "secondary": "Demo dashboard"
+  },
+  "footer": {
+    "tagline": "Central Asia's first professional image rights protection ecosystem. Your image. Your rights. Your protection.",
+    "columns": [
+      {
+        "title": "Product",
+        "links": [
+          { "label": "Features", "href": "#features" },
+          { "label": "Pricing", "href": "#pricing" },
+          { "label": "Dashboard", "href": "/dashboard" },
+          { "label": "API docs", "href": "/dashboard" }
+        ]
+      },
+      {
+        "title": "Modules",
+        "links": [
+          { "label": "Image registry", "href": "/dashboard/registry" },
+          { "label": "Deepfake detection", "href": "/dashboard/deepfake" },
+          { "label": "Internet monitoring", "href": "/dashboard/monitoring" },
+          { "label": "Licensing marketplace", "href": "/dashboard/marketplace" }
+        ]
+      },
+      {
+        "title": "Company",
+        "links": [
+          { "label": "About us", "href": "#" },
+          { "label": "Blog", "href": "/blog" },
+          { "label": "Careers", "href": "#" },
+          { "label": "Contact", "href": "#" }
+        ]
+      },
+      {
+        "title": "Legal",
+        "links": [
+          { "label": "Privacy policy", "href": "#" },
+          { "label": "Terms of use", "href": "#" },
+          { "label": "Cookie policy", "href": "#" },
+          { "label": "Security", "href": "#" }
+        ]
+      }
+    ],
+    "company": {
+      "title": "Company",
+      "ownerLabel": "Owner",
+      "ownerName": "Jumabekov Samandar",
+      "contactLabel": "Contact",
+      "phone": "+998 99 600 69 38",
+      "instagramLabel": "Instagram",
+      "instagram": "@imagerights.uz",
+      "personalLabel": "Personal Instagram",
+      "personal": "@jumabekov.samandar"
+    },
+    "copyright": "© 2026 ImageRights.uz — All rights reserved.",
+    "location": "Tashkent, Uzbekistan · hello@imagerights.uz"
+  },
+  "auth": {
+    "backHome": "← Back to home",
+    "brandBadge": "Image rights protection platform",
+    "brandTitlePre": "Your image.",
+    "brandTitleHighlight": "Your rights.",
+    "brandTitlePost": "Your protection.",
+    "points": [
+      "1M+ images protected",
+      "99.2% deepfake detection accuracy",
+      "Legally valid electronic evidence",
+      "Official identification with OneID"
+    ],
+    "copyright": "© 2026 ImageRights.uz — Central Asia's first image rights ecosystem.",
+    "orEmail": "or with email",
+    "oneid": "Continue with OneID",
+    "google": "Continue with Google",
+    "login": {
+      "metaTitle": "Sign in",
+      "title": "Sign in to your account",
+      "subtitle": "Continue to manage your image rights.",
+      "footerText": "Don't have an account?",
+      "footerLink": "Sign up",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "password": "Password",
+      "forgot": "Forgot your password?",
+      "passwordPlaceholder": "••••••••",
+      "submit": "Sign in"
+    },
+    "register": {
+      "metaTitle": "Sign up",
+      "title": "Create a free account",
+      "subtitle": "Start protecting your image in just a few minutes.",
+      "footerText": "Already have an account?",
+      "footerLink": "Sign in",
+      "fullName": "Full name",
+      "fullNamePlaceholder": "First Last",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "password": "Password",
+      "passwordPlaceholder": "At least 8 characters",
+      "agree": "I agree to the <terms>Terms of Use</terms> and <privacy>Privacy Policy</privacy>.",
+      "submit": "Get started free"
+    }
+  }
+}
