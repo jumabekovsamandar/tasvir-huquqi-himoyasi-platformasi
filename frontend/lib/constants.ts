@@ -5,7 +5,6 @@ import {
   Globe2,
   FolderLock,
   Gavel,
-  Eraser,
   Store,
   type LucideIcon,
 } from "lucide-react";
@@ -59,13 +58,6 @@ export const FEATURES: Feature[] = [
     description:
       "Ogohlantirish xati, olib tashlash talabi, sudgacha talabnoma va da'vo arizasini avtomatik shakllantiring.",
     href: "/dashboard/legal-assistant",
-  },
-  {
-    icon: Eraser,
-    title: "Unutilish Huquqi",
-    description:
-      "Havolani yuboring — tizim o‘chirish talabnomasini tayyorlaydi va jarayonni boshidan oxirigacha kuzatadi.",
-    href: "/dashboard/right-to-be-forgotten",
   },
   {
     icon: Store,
@@ -273,8 +265,8 @@ export const FAQS: Faq[] = [
 ];
 
 export const STATS = [
-  { value: "1M+", label: "Himoyalangan tasvir" },
-  { value: "99.2%", label: "Deepfake aniqlash aniqligi" },
+  { value: "10,000+", label: "Ro‘yxatdan o‘tgan tasvir" },
+  { value: "94.7%", label: "Deepfake aniqlash darajasi" },
   { value: "24/7", label: "Internet monitoring" },
   { value: "<3 daq", label: "Hujjat tayyorlash vaqti" },
 ];

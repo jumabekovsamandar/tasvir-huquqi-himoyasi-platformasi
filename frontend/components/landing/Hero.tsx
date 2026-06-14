@@ -33,9 +33,9 @@ export function Hero() {
               transition={{ duration: 0.7, delay: 0.05 }}
               className="mt-6 text-4xl font-extrabold leading-[1.05] tracking-tight text-ink-900 sm:text-5xl lg:text-6xl"
             >
-              Tasviringiz.{" "}
-              <span className="gradient-text">Huquqingiz.</span>
-              <br className="hidden sm:block" /> Himoyangiz.
+              Raqamli dunyoda tasvir{" "}
+              <span className="gradient-text">huquqlaringiz</span>
+              <br className="hidden sm:block" /> kafolati
             </motion.h1>
 
             <motion.p
