@@ -1,0 +1,12 @@
+{
+  "name": "sam-junior",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "pnpm --filter @sam-junior/desktop tauri dev",
+    "build:frontend": "pnpm --filter @sam-junior/desktop build",
+    "build:app": "pnpm --filter @sam-junior/desktop tauri build",
+    "typecheck": "pnpm --filter @sam-junior/desktop typecheck",
+    "test:core": "cargo test --workspace"
+  }
+}

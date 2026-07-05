@@ -8,3 +8,7 @@ build/
 *.log
 .DS_Store
 coverage/
+
+# SAM JUNIOR (Rust / Tauri)
+target/
+sam-junior/apps/desktop/src-tauri/gen/schemas/

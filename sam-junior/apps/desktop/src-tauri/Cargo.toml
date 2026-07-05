@@ -1,0 +1,22 @@
+[package]
+name = "sam-junior-desktop"
+description = "SAM JUNIOR — private personal AI assistant (desktop shell)"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[lib]
+name = "sam_junior_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-appender = "0.2"
+sam-core = { path = "../../../packages/core" }
