@@ -38,8 +38,12 @@ va huquqbuzarlik holatlarida avtomatik huquqiy hujjatlar tayyorlaydi.
 ├── frontend/        # Next.js — landing sahifa + professional dashboard
 ├── backend/         # NestJS — REST API, modullar, AI servislar
 ├── docs/            # Arxitektura, API spetsifikatsiyasi, ma'lumotlar bazasi sxemasi
+├── sam-junior/      # SAM JUNIOR — shaxsiy AI yordamchi (Windows, Tauri) — alohida loyiha
 └── README.md
 ```
+
+> **Eslatma:** `sam-junior/` — bu repozitoriyada yashovchi alohida desktop
+> loyiha. Batafsil: [`sam-junior/README.md`](sam-junior/README.md).
 
 ## 🚀 Ishga tushirish
 
