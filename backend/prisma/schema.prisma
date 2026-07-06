@@ -1,5 +1,5 @@
-// ImageRights.uz — PostgreSQL ma'lumotlar bazasi sxemasi (Prisma)
-// To‘liq tasvir huquqlari himoyasi ekotizimi uchun ma'lumotlar modeli.
+// ImageRights.uz — ma'lumotlar bazasi sxemasi (Prisma / PostgreSQL)
+// Asosiy oqim: DETECT → DOCUMENT → ANALYZE → PROTECT → RESOLVE
 
 generator client {
   provider = "prisma-client-js"
@@ -15,13 +15,9 @@ datasource db {
 // ─────────────────────────────────────────────────────────────
 
 enum UserRole {
-  USER // oddiy fuqaro
-  CREATOR // bloger, influencer, san'atkor
-  LAWYER // advokat
-  AGENCY // reklama agentligi / OAV
-  GOV // davlat organi
+  USER
+  LAWYER
   ADMIN
-  SUPERADMIN
 }
 
 enum AuthProvider {
@@ -30,387 +26,444 @@ enum AuthProvider {
   ONEID
 }
 
-enum SubscriptionPlan {
-  FREE
-  PROFESSIONAL
-  BUSINESS
-  ENTERPRISE
+enum PrivacyLevel {
+  PRIVATE // faqat egasi ko‘radi
+  RESTRICTED // egasi + biriktirilgan advokat
 }
 
-enum SubscriptionStatus {
+enum ImageState {
   ACTIVE
-  PAST_DUE
-  CANCELED
-  TRIALING
-}
-
-enum ImageStatus {
-  PENDING // tekshirilmoqda
-  VERIFIED // egalik tasdiqlangan
-  REJECTED
   ARCHIVED
 }
 
-enum ConsentType {
-  EDITORIAL // tahririy
-  COMMERCIAL // tijorat
-  SOCIAL // ijtimoiy tarmoq
-  EXCLUSIVE // eksklyuziv
+enum ViolationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  ACTION_REQUIRED
+  NOTICE_PREPARED
+  LAWYER_REVIEW
+  RESOLVED
+  CLOSED
 }
 
-enum ConsentStatus {
-  ACTIVE
-  DENIED // taqiqlangan
-  REVOKED // bekor qilingan
-  EXPIRED
+enum ViolationPlatform {
+  INSTAGRAM
+  FACEBOOK
+  TELEGRAM
+  YOUTUBE
+  TIKTOK
+  WEBSITE
+  PRESS
+  ADVERTISING
+  OTHER
 }
 
-enum DeepfakeVerdict {
-  AUTHENTIC
-  SUSPICIOUS
-  FAKE
-}
-
-enum MatchStatus {
-  NEW // yangi topildi
-  REVIEWING
-  AUTHORIZED // ruxsat berilgan
-  UNAUTHORIZED // ruxsatsiz
-  CLAIM_SENT // da'vo yuborildi
-  RESOLVED // hal qilindi
+enum EvidenceKind {
+  FILE
+  URL
 }
 
 enum EvidenceType {
   SCREENSHOT
-  METADATA
-  DEEPFAKE_REPORT
-  MONITORING_REPORT
+  ORIGINAL_IMAGE
+  URL
+  PDF_DOCUMENT
+  CORRESPONDENCE
+  OTHER
 }
 
-enum LegalDocType {
-  WARNING_LETTER // ogohlantirish xati
+enum DocumentType {
+  PLATFORM_COMPLAINT // platformaga shikoyat
   TAKEDOWN_REQUEST // olib tashlash talabi
-  PRETRIAL_CLAIM // sudgacha talabnoma
-  LAWSUIT // da'vo arizasi
+  FORMAL_NOTICE // rasmiy ogohlantirish xati
+  EVIDENCE_SUMMARY // dalillar xulosasi
+  LAWYER_BRIEF // advokat uchun ish xulosasi
 }
 
-enum LegalDocStatus {
+enum DocumentStatus {
   DRAFT
-  SENT
-  RESPONDED
-  RESOLVED
-  ESCALATED
+  FINALIZED
 }
 
-enum RtbfStatus {
-  SUBMITTED // havola yuborildi
-  DRAFTED // talabnoma tayyorlandi
-  AWAITING_PROVIDER
-  REMOVED // o‘chirildi
-  REJECTED
+enum AIAnalysisKind {
+  CASE_SUMMARY
+  RISK_ASSESSMENT
+  MISSING_INFO
+  LAWYER_QUESTIONS
+  DOCUMENT_DRAFT
 }
 
-enum ListingStatus {
-  DRAFT
-  ACTIVE // sotuvda
-  SOLD // sotildi
-  PAUSED
+enum NotificationType {
+  CASE_SUBMITTED
+  STATUS_CHANGED
+  INFO_REQUESTED
+  DOCUMENT_READY
+  ADMIN_MESSAGE
+  SECURITY
 }
 
-enum DealStatus {
-  PENDING_PAYMENT
-  CONTRACT_SIGNED
-  COMPLETED
-  CANCELLED
+enum ContactStatus {
+  NEW
+  REVIEWED
+  ARCHIVED
 }
 
 // ─────────────────────────────────────────────────────────────
-// CORE: USERS & AUTH
+// FOYDALANUVCHILAR
 // ─────────────────────────────────────────────────────────────
 
 model User {
-  id           String       @id @default(cuid())
-  email        String       @unique
-  passwordHash String?
-  fullName     String
-  phone        String?
-  avatarUrl    String?
-  role         UserRole     @default(USER)
-  provider     AuthProvider @default(EMAIL)
-  oneIdPinfl   String?      @unique // OneID PINFL identifikatori
-  emailVerified Boolean     @default(false)
-  twoFactorEnabled Boolean  @default(false)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id            String       @id @default(uuid())
+  email         String       @unique
+  passwordHash  String? // OAuth foydalanuvchilarda bo‘lmasligi mumkin
+  role          UserRole     @default(USER)
+  provider      AuthProvider @default(EMAIL)
+  oneIdPinfl    String?      @unique
+  emailVerified Boolean      @default(false)
+  isActive      Boolean      @default(true) // admin bloklashi mumkin
+  deletedAt     DateTime? // soft delete
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
-  subscription Subscription?
-  images       Image[]
-  consents     Consent[]
-  deepfakeScans DeepfakeScan[]
-  monitoringJobs MonitoringJob[]
-  evidence     Evidence[]
-  legalDocs    LegalDocument[]
-  rtbfRequests RtbfRequest[]
-  listings     LicenseListing[]
-  buyerDeals   LicenseDeal[]   @relation("BuyerDeals")
-  auditLogs    AuditLog[]
+  profile       Profile?
+  lawyerProfile LawyerProfile?
+
+  passwordResetTokens PasswordResetToken[]
+  emailVerifyTokens   EmailVerifyToken[]
+  images              ProtectedImage[]
+  reports             ViolationReport[]
+  assignedCases       Case[]               @relation("LawyerCases")
+  evidence            Evidence[]
+  documents           Document[]
+  caseNotes           CaseNote[]
+  caseMessages        CaseMessage[]
+  notifications       Notification[]
+  aiAnalyses          AIAnalysis[]
+  auditLogs           AuditLog[]
+  statusChanges       CaseStatusHistory[]
 
   @@index([role])
+  @@index([isActive])
 }
 
-model Subscription {
-  id        String             @id @default(cuid())
-  userId    String             @unique
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan      SubscriptionPlan   @default(FREE)
-  status    SubscriptionStatus @default(ACTIVE)
-  scansUsed Int                @default(0)
-  scanLimit Int                @default(5) // FREE: oyiga 5 ta tekshiruv
-  renewsAt  DateTime?
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
+model Profile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName     String
+  phone        String?
+  organization String?
+  avatarUrl    String?
+  locale       String   @default("uz")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model LawyerProfile {
+  id             String    @id @default(uuid())
+  userId         String    @unique
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  licenseNumber  String
+  specialization String?
+  experienceYears Int?
+  bio            String?
+  verified       Boolean   @default(false) // faqat admin tasdiqlaydi
+  verifiedAt     DateTime?
+  verifiedById   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([verified])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model EmailVerifyToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
 
 // ─────────────────────────────────────────────────────────────
-// MODULE 1: TASVIR HUQUQI REYESTRI
+// HIMOYALANGAN TASVIRLAR REYESTRI
+// Eslatma: bu ichki reyestr — davlat intellektual mulk
+// ro‘yxatidan o‘tkazish emas, dalillashga yordam beruvchi hujjat.
 // ─────────────────────────────────────────────────────────────
 
-model Image {
-  id           String      @id @default(cuid())
+model ProtectedImage {
+  id           String       @id @default(uuid())
   ownerId      String
-  owner        User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner        User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  registryCode String       @unique // masalan: IMG-2026-4F8A2C
   title        String
-  storageKey   String // AWS S3 obyekt kaliti
-  thumbnailKey String?
-  mimeType     String
-  sizeBytes    Int
-  width        Int?
-  height       Int?
-  perceptualHash String?   // monitoring uchun pHash
-  sha256       String // fayl yaxlitligi
-  exifMetadata Json?
-  registryCode String      @unique // masalan IR-48F2A1
-  timestampedAt DateTime   @default(now()) // huquqiy vaqt tamg‘asi
-  status       ImageStatus @default(PENDING)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  description  String?
 
-  consents     Consent[]
-  deepfakeScans DeepfakeScan[]
-  monitoringJobs MonitoringJob[]
-  evidence     Evidence[]
-  listings     LicenseListing[]
+  storageKey String
+  mimeType   String
+  sizeBytes  Int
+  width      Int?
+  height     Int?
+  sha256     String
+
+  ownershipNote        String? // egalik haqida ma'lumot
+  capturedAt           DateTime? // surat yaratilgan sana
+  firstPublishedAt     DateTime? // birinchi e'lon qilingan sana
+  publicationSource    String? // qayerda e'lon qilingan
+  consentRestrictions  String? // rozilik cheklovlari
+  commercialUseAllowed Boolean      @default(false)
+  tags                 String[]     @default([])
+  privacyLevel         PrivacyLevel @default(PRIVATE)
+
+  state     ImageState @default(ACTIVE)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  reports ViolationReport[]
 
   @@index([ownerId])
-  @@index([perceptualHash])
+  @@index([state])
 }
 
 // ─────────────────────────────────────────────────────────────
-// MODULE 2: ROZILIK BOSHQARUVI
+// HUQUQBUZARLIK HISOBOTLARI VA ISHLAR
 // ─────────────────────────────────────────────────────────────
 
-model Consent {
-  id          String        @id @default(cuid())
-  userId      String
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  imageId     String
-  image       Image         @relation(fields: [imageId], references: [id], onDelete: Cascade)
-  partyName   String // kim foydalanadi
-  partyContact String?
-  type        ConsentType
-  status      ConsentStatus @default(ACTIVE)
-  commercial  Boolean       @default(false)
-  startsAt    DateTime      @default(now())
-  expiresAt   DateTime? // null = muddatsiz
-  revokedAt   DateTime?
-  terms       String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+model ViolationReport {
+  id         String  @id @default(uuid())
+  reporterId String
+  reporter   User    @relation(fields: [reporterId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-  @@index([imageId])
-}
+  protectedImageId String?
+  protectedImage   ProtectedImage? @relation(fields: [protectedImageId], references: [id], onDelete: SetNull)
 
-// ─────────────────────────────────────────────────────────────
-// MODULE 3: DEEPFAKE ANIQLASH
-// ─────────────────────────────────────────────────────────────
+  infringingUrl String?
+  platform      ViolationPlatform @default(OTHER)
+  platformOther String?
+  publishedAt   DateTime? // e'lon qilingan sana (ma'lum bo‘lsa)
+  discoveredAt  DateTime // aniqlangan sana
+  description   String
 
-model DeepfakeScan {
-  id              String          @id @default(cuid())
-  userId          String
-  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  imageId         String?
-  image           Image?          @relation(fields: [imageId], references: [id])
-  sourceKey       String // tahlil qilingan fayl (S3)
-  mediaType       String // image | video
-  verdict         DeepfakeVerdict
-  confidence      Float // 0-100 ishonchlilik foizi
-  faceSwapScore   Float?
-  montageScore    Float?
-  aiGeneratedScore Float?
-  metadataScore   Float?
-  rawResult       Json?
-  createdAt       DateTime        @default(now())
+  hadConsent     Boolean @default(false)
+  consentDetails String?
+  commercialUse  Boolean @default(false)
+  damageDescription String?
 
+  status    ViolationStatus @default(DRAFT)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  case     Case?
   evidence Evidence[]
 
-  @@index([userId])
-}
-
-// ─────────────────────────────────────────────────────────────
-// MODULE 4: INTERNET MONITORING
-// ─────────────────────────────────────────────────────────────
-
-model MonitoringJob {
-  id         String          @id @default(cuid())
-  userId     String
-  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  imageId    String
-  image      Image           @relation(fields: [imageId], references: [id], onDelete: Cascade)
-  active     Boolean         @default(true)
-  lastRunAt  DateTime?
-  createdAt  DateTime        @default(now())
-
-  matches    MonitoringMatch[]
-
-  @@index([userId])
-}
-
-model MonitoringMatch {
-  id           String      @id @default(cuid())
-  jobId        String
-  job          MonitoringJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  url          String
-  domain       String
-  similarity   Float // moslik foizi
-  screenshotKey String? // S3 dagi screenshot
-  foundAt      DateTime    @default(now())
-  status       MatchStatus @default(NEW)
-  createdAt    DateTime    @default(now())
-
-  evidence Evidence[]
-
-  @@index([jobId])
+  @@index([reporterId])
   @@index([status])
 }
 
+model Case {
+  id         String @id @default(uuid())
+  caseNumber String @unique // masalan: IR-2026-000123
+
+  reportId String          @unique
+  report   ViolationReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  assignedLawyerId String?
+  assignedLawyer   User?   @relation("LawyerCases", fields: [assignedLawyerId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  statusHistory CaseStatusHistory[]
+  documents     Document[]
+  notes         CaseNote[]
+  messages      CaseMessage[]
+  aiAnalyses    AIAnalysis[]
+
+  @@index([assignedLawyerId])
+}
+
+model CaseStatusHistory {
+  id          String          @id @default(uuid())
+  caseId      String
+  case        Case            @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  fromStatus  ViolationStatus?
+  toStatus    ViolationStatus
+  changedById String?
+  changedBy   User?           @relation(fields: [changedById], references: [id], onDelete: SetNull)
+  note        String?
+  createdAt   DateTime        @default(now())
+
+  @@index([caseId])
+}
+
+// Advokatning ichki eslatmalari — mijozga KO‘RINMAYDI
+model CaseNote {
+  id        String   @id @default(uuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([caseId])
+}
+
+// Mijoz ↔ advokat yozishmalari — ikkala tomonga ko‘rinadi
+model CaseMessage {
+  id        String   @id @default(uuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([caseId])
+}
+
 // ─────────────────────────────────────────────────────────────
-// MODULE 5: ELEKTRON DALILLAR OMBORI
+// DALILLAR OMBORI
 // ─────────────────────────────────────────────────────────────
 
 model Evidence {
-  id           String       @id @default(cuid())
-  userId       String
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  code         String       @unique // EV-2026-0481
-  type         EvidenceType
-  imageId      String?
-  image        Image?       @relation(fields: [imageId], references: [id])
-  matchId      String?
-  match        MonitoringMatch? @relation(fields: [matchId], references: [id])
-  scanId       String?
-  scan         DeepfakeScan?    @relation(fields: [scanId], references: [id])
-  storageKey   String? // dalil fayli (S3)
-  metadata     Json?
-  sha256       String // buzilmaslik isboti
-  timestampedAt DateTime    @default(now()) // huquqiy vaqt tamg‘asi
-  createdAt    DateTime     @default(now())
+  id         String @id @default(uuid())
+  uploaderId String
+  uploader   User   @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
 
-  legalDocs LegalDocument[] @relation("EvidenceDocs")
+  reportId String
+  report   ViolationReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
+  kind        EvidenceKind
+  type        EvidenceType
+  description String?
+
+  // FILE turi uchun
+  originalFilename String?
+  storageKey       String? @unique
+  mimeType         String?
+  sizeBytes        Int?
+  sha256           String?
+
+  // URL turi uchun
+  url String?
+
+  createdAt DateTime @default(now())
+
+  @@index([reportId])
+  @@index([uploaderId])
 }
 
 // ─────────────────────────────────────────────────────────────
-// MODULE 6: AI YURIDIK YORDAMCHI
+// HUQUQIY HUJJATLAR
 // ─────────────────────────────────────────────────────────────
 
-model LegalDocument {
-  id          String         @id @default(cuid())
-  userId      String
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type        LegalDocType
-  title       String
-  recipient   String?
-  content     String // AI tomonidan yaratilgan matn
-  status      LegalDocStatus @default(DRAFT)
-  sentAt      DateTime?
+model Document {
+  id          String @id @default(uuid())
+  caseId      String
+  case        Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  type             DocumentType
+  title            String
+  content          String // tahrirlanadigan matn
+  senderName       String
+  recipientName    String?
+  recipientContact String?
+
+  status      DocumentStatus @default(DRAFT)
+  finalizedAt DateTime?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  evidence Evidence[] @relation("EvidenceDocs")
-
-  @@index([userId])
+  @@index([caseId])
 }
 
 // ─────────────────────────────────────────────────────────────
-// MODULE 7: UNUTILISH HUQUQI
+// AI TAHLILLARI
+// Har bir natija axborot xarakteriga ega — yuridik maslahat emas.
 // ─────────────────────────────────────────────────────────────
 
-model RtbfRequest {
-  id          String     @id @default(cuid())
-  userId      String
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  targetUrl   String
-  provider    String? // aniqlangan mas'ul provayder
-  status      RtbfStatus @default(SUBMITTED)
-  progress    Int        @default(0) // 0-100
-  notes       String?
-  resolvedAt  DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+model AIAnalysis {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  caseId String?
+  case   Case?  @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  kind   AIAnalysisKind
+  output String
+  model  String
+
+  createdAt DateTime @default(now())
 
   @@index([userId])
+  @@index([caseId])
 }
 
 // ─────────────────────────────────────────────────────────────
-// MODULE 8: LITSENZIYALASH BOZORI
+// BILDIRISHNOMALAR
 // ─────────────────────────────────────────────────────────────
 
-model LicenseListing {
-  id          String        @id @default(cuid())
-  sellerId    String
-  seller      User          @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  imageId     String
-  image       Image         @relation(fields: [imageId], references: [id], onDelete: Cascade)
-  title       String
-  licenseType ConsentType
-  priceUzs    BigInt
-  status      ListingStatus @default(ACTIVE)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+model Notification {
+  id     String           @id @default(uuid())
+  userId String
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type   NotificationType
+  title  String
+  body   String?
+  link   String?
+  readAt DateTime?
 
-  deals LicenseDeal[]
+  createdAt DateTime @default(now())
 
-  @@index([sellerId])
+  @@index([userId, readAt])
+}
+
+// ─────────────────────────────────────────────────────────────
+// ALOQA MUROJAATLARI
+// ─────────────────────────────────────────────────────────────
+
+model ContactSubmission {
+  id      String        @id @default(uuid())
+  name    String
+  email   String
+  phone   String?
+  subject String
+  message String
+  status  ContactStatus @default(NEW)
+
+  createdAt DateTime @default(now())
+
   @@index([status])
 }
 
-model LicenseDeal {
-  id          String     @id @default(cuid())
-  listingId   String
-  listing     LicenseListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  buyerId     String
-  buyer       User       @relation("BuyerDeals", fields: [buyerId], references: [id])
-  amountUzs   BigInt
-  status      DealStatus @default(PENDING_PAYMENT)
-  contractKey String? // imzolangan elektron shartnoma (S3)
-  signedAt    DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  @@index([buyerId])
-}
-
 // ─────────────────────────────────────────────────────────────
-// XAVFSIZLIK: AUDIT LOG
+// AUDIT LOG
 // ─────────────────────────────────────────────────────────────
 
 model AuditLog {
-  id         String   @id @default(cuid())
+  id         String  @id @default(uuid())
   userId     String?
-  user       User?    @relation(fields: [userId], references: [id])
-  action     String // masalan: IMAGE_REGISTERED, CONSENT_REVOKED
+  user       User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String // masalan: IMAGE_REGISTERED, CASE_STATUS_CHANGED
   entityType String
   entityId   String?
   ipAddress  String?
