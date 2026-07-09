@@ -1,134 +1,152 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
-  ShieldCheck,
-  Globe2,
-  ScanFace,
-  FolderLock,
-  ArrowUpRight,
-  AlertTriangle,
+  Activity,
   CheckCircle2,
+  FileWarning,
+  Gavel,
+  ImageIcon,
+  Plus,
+  ShieldAlert,
   Upload,
 } from "lucide-react";
-import { PageHeader, StatCard, Panel, StatusBadge } from "@/components/dashboard/ui";
+import { PageHeader } from "@/components/layout/AppShell";
+import {
+  Alert,
+  Button,
+  EmptyState,
+  PageSkeleton,
+  StatCard,
+} from "@/components/ui/primitives";
+import { api, ApiError } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { ACTIVITY_LABELS, formatDateTime } from "@/lib/labels";
+import type { UserOverview } from "@/lib/types";
 
-const ALERTS = [
-  {
-    site: "instagram.com/fakeaccount",
-    type: "Ruxsatsiz foydalanish",
-    date: "13-iyun, 2026",
-    tone: "red",
-    status: "Yangi",
-  },
-  {
-    site: "telegram-kanal · @news",
-    type: "Deepfake gumoni (94%)",
-    date: "12-iyun, 2026",
-    tone: "red",
-    status: "Tekshirilmoqda",
-  },
-  {
-    site: "reklama-sayt.uz",
-    type: "Tijorat foydalanish",
-    date: "11-iyun, 2026",
-    tone: "amber",
-    status: "Da'vo yuborildi",
-  },
-  {
-    site: "blog.example.com",
-    type: "Nusxa topildi",
-    date: "10-iyun, 2026",
-    tone: "blue",
-    status: "Hal qilindi",
-  },
-];
+export default function DashboardOverviewPage() {
+  const { user } = useAuth();
+  const [data, setData] = useState<UserOverview | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [resent, setResent] = useState(false);
 
-const ACTIVITY = [
-  { icon: ShieldCheck, text: "“Portret_2026.jpg” reyestrga qo‘shildi", time: "2 soat oldin", tone: "green" },
-  { icon: ScanFace, text: "Deepfake tahlili yakunlandi — 94% xavf", time: "5 soat oldin", tone: "red" },
-  { icon: FolderLock, text: "Yangi elektron dalil saqlandi", time: "1 kun oldin", tone: "blue" },
-  { icon: CheckCircle2, text: "Ogohlantirish xati yuborildi", time: "2 kun oldin", tone: "green" },
-];
+  useEffect(() => {
+    api<UserOverview>("/dashboard/overview")
+      .then(setData)
+      .catch((e) =>
+        setError(e instanceof ApiError ? e.message : "Ma’lumotlarni yuklab bo‘lmadi"),
+      );
+  }, []);
 
-export default function DashboardOverview() {
+  if (error) return <Alert tone="error">{error}</Alert>;
+  if (!data) return <PageSkeleton />;
+
+  const isEmpty =
+    data.images === 0 && data.openReports === 0 && data.activeCases === 0;
+
   return (
     <>
       <PageHeader
-        title="Xush kelibsiz, Dilnoza 👋"
-        description="Tasvir huquqlaringizning umumiy holati va so‘nggi faoliyat."
+        title={`Xush kelibsiz, ${user?.profile?.fullName?.split(" ")[0] ?? ""}!`}
+        description="Tasvir huquqlaringizning umumiy holati."
         action={
-          <Link href="/dashboard/registry" className="btn-primary">
-            <Upload className="h-4 w-4" /> Tasvir yuklash
+          <Link href="/dashboard/images/new" className="btn-primary">
+            <Upload className="h-4 w-4" aria-hidden /> Tasvir qo‘shish
           </Link>
         }
       />
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Himoyalangan tasvir" value="48" icon={ShieldCheck} trend="+6" tone="brand" />
-        <StatCard label="Faol monitoring" value="24/7" icon={Globe2} tone="green" />
-        <StatCard label="Aniqlangan xavf" value="3" icon={AlertTriangle} trend="Yangi" tone="red" />
-        <StatCard label="Elektron dalil" value="129" icon={FolderLock} trend="+12" tone="amber" />
+      {user && !user.emailVerified && user.provider === "EMAIL" && (
+        <Alert tone="warning">
+          Email manzilingiz hali tasdiqlanmagan.{" "}
+          {resent ? (
+            "Tasdiqlash havolasi yuborildi."
+          ) : (
+            <button
+              className="font-semibold underline"
+              onClick={() => {
+                void api("/auth/resend-verification", { body: {} })
+                  .then(() => setResent(true))
+                  .catch(() => {});
+              }}
+            >
+              Havolani qayta yuborish
+            </button>
+          )}
+        </Alert>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Himoyalangan tasvir" value={data.images} icon={ImageIcon} tone="brand" />
+        <StatCard label="Ochiq hisobotlar" value={data.openReports} icon={ShieldAlert} tone="amber" />
+        <StatCard label="Faol ishlar" value={data.activeCases} icon={Gavel} tone="ink" />
+        <StatCard label="Yakunlangan ishlar" value={data.resolvedCases} icon={CheckCircle2} tone="green" />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Panel
-          title="Monitoring ogohlantirishlari"
-          className="lg:col-span-2"
-          action={
-            <Link href="/dashboard/monitoring" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600">
-              Barchasi <ArrowUpRight className="h-4 w-4" />
-            </Link>
-          }
-        >
-          <div className="-mx-6 -my-6 overflow-x-auto">
-            <table className="w-full min-w-[560px] text-sm">
-              <thead>
-                <tr className="border-b border-ink-100 text-left text-xs uppercase tracking-wider text-ink-400">
-                  <th className="px-6 py-3 font-semibold">Manba</th>
-                  <th className="px-6 py-3 font-semibold">Turi</th>
-                  <th className="px-6 py-3 font-semibold">Sana</th>
-                  <th className="px-6 py-3 font-semibold">Holat</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-ink-50">
-                {ALERTS.map((a) => (
-                  <tr key={a.site} className="hover:bg-ink-50/50">
-                    <td className="px-6 py-3.5 font-medium text-ink-900">{a.site}</td>
-                    <td className="px-6 py-3.5 text-ink-600">{a.type}</td>
-                    <td className="px-6 py-3.5 text-ink-500">{a.date}</td>
-                    <td className="px-6 py-3.5">
-                      <StatusBadge tone={a.tone}>{a.status}</StatusBadge>
-                    </td>
-                  </tr>
+      {isEmpty ? (
+        <EmptyState
+          icon={ImageIcon}
+          title="Himoyani boshlash uchun birinchi tasviringizni qo‘shing"
+          description="Reyestrga kiritilgan tasvir vaqt tamg‘asi va raqamli barmoq izi bilan qayd etiladi — bu huquqbuzarlik yuz berganda dalil bazangiz bo‘ladi."
+          action={{ label: "Tasvirni ro‘yxatdan o‘tkazish", href: "/dashboard/images/new" }}
+        />
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-3">
+          <section className="card lg:col-span-2" aria-labelledby="activity-title">
+            <div className="flex items-center justify-between">
+              <h2 id="activity-title" className="font-semibold text-ink-900">
+                So‘nggi faoliyat
+              </h2>
+              <Activity className="h-4 w-4 text-ink-300" aria-hidden />
+            </div>
+            {data.recentActivity.length === 0 ? (
+              <p className="mt-4 text-sm text-ink-500">Hozircha faoliyat qayd etilmagan.</p>
+            ) : (
+              <ul className="mt-4 divide-y divide-ink-50">
+                {data.recentActivity.map((a, i) => (
+                  <li key={i} className="flex items-center justify-between gap-4 py-3">
+                    <span className="text-sm text-ink-800">
+                      {ACTIVITY_LABELS[a.action] ?? a.action}
+                    </span>
+                    <span className="shrink-0 text-xs text-ink-400">
+                      {formatDateTime(a.createdAt)}
+                    </span>
+                  </li>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </Panel>
+              </ul>
+            )}
+          </section>
 
-        <Panel title="So‘nggi faoliyat">
-          <ul className="space-y-5">
-            {ACTIVITY.map((a, i) => (
-              <li key={i} className="flex gap-3">
-                <span
-                  className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${
-                    a.tone === "red"
-                      ? "bg-red-50 text-red-600"
-                      : a.tone === "green"
-                        ? "bg-green-50 text-green-600"
-                        : "bg-brand-50 text-brand-600"
-                  }`}
-                >
-                  <a.icon className="h-[18px] w-[18px]" />
-                </span>
-                <div>
-                  <p className="text-sm text-ink-800">{a.text}</p>
-                  <p className="mt-0.5 text-xs text-ink-400">{a.time}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Panel>
-      </div>
+          <section className="card" aria-labelledby="quick-title">
+            <h2 id="quick-title" className="font-semibold text-ink-900">
+              Tezkor amallar
+            </h2>
+            <div className="mt-4 flex flex-col gap-2.5">
+              <Link href="/dashboard/violations/new" className="btn-secondary justify-start">
+                <FileWarning className="h-4 w-4 text-amber-500" aria-hidden />
+                Huquqbuzarlik haqida xabar berish
+              </Link>
+              <Link href="/dashboard/images/new" className="btn-secondary justify-start">
+                <Plus className="h-4 w-4 text-brand-500" aria-hidden />
+                Yangi tasvir qo‘shish
+              </Link>
+              <Link href="/dashboard/assistant" className="btn-secondary justify-start">
+                <Gavel className="h-4 w-4 text-gold-600" aria-hidden />
+                AI yordamchidan tahlil olish
+              </Link>
+            </div>
+            {data.drafts > 0 && (
+              <Alert tone="info" className="mt-4">
+                Sizda {data.drafts} ta yuborilmagan qoralama hisobot bor.{" "}
+                <Link href="/dashboard/violations?status=DRAFT" className="font-semibold underline">
+                  Ko‘rish
+                </Link>
+              </Alert>
+            )}
+          </section>
+        </div>
+      )}
     </>
   );
 }

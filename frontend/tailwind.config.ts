@@ -35,6 +35,15 @@ const config: Config = {
           900: "#1d318f",
           950: "#161f57",
         },
+        // Vazmin oltin urg'u — huquqiy obro' uchun
+        gold: {
+          50: "#fbf7eb",
+          100: "#f5ecce",
+          300: "#e2c878",
+          500: "#c9a43a",
+          600: "#a9862b",
+          700: "#856723",
+        },
       },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
 
 const inter = Inter({
@@ -11,28 +12,29 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("https://imagerights.uz"),
   title: {
-    default: "ImageRights.uz — Tasviringiz. Huquqingiz. Himoyangiz.",
+    default: "ImageRights.uz — Raqamli dunyoda tasvir huquqlaringiz kafolati",
     template: "%s · ImageRights.uz",
   },
   description:
-    "Markaziy Osiyodagi birinchi professional tasvir huquqlari himoyasi platformasi. Sun'iy intellekt yordamida suratingizni himoya qiling, deepfake holatlarini aniqlang va tasvir huquqlaringizni nazorat qiling.",
+    "Tasvir huquqlarini himoya qilish platformasi: ruxsatsiz suratdan foydalanishni hujjatlashtiring, dalillarni xavfsiz saqlang, huquqiy talabnoma tayyorlang va ish holatini kuzating.",
   keywords: [
-    "tasvir huquqi",
-    "deepfake aniqlash",
-    "image rights",
-    "LegalTech",
-    "sun'iy intellekt huquq",
-    "shaxsiy ma'lumotlar himoyasi",
-    "Uzbekistan",
+    "tasvirga bo‘lgan huquq",
+    "tasvir huquqlarini himoya qilish",
+    "ruxsatsiz suratdan foydalanish",
+    "internetda suratni himoya qilish",
+    "image rights Uzbekistan",
+    "shaxsiy tasvir huquqi",
   ],
   authors: [{ name: "ImageRights.uz" }],
   openGraph: {
-    title: "ImageRights.uz — Tasvir huquqlari himoyasi platformasi",
-    description:
-      "Sun'iy intellekt yordamida suratingizni himoya qiling, deepfake holatlarini aniqlang va tasvir huquqlaringizni nazorat qiling.",
-    locale: "uz_UZ",
     type: "website",
+    locale: "uz_UZ",
+    siteName: "ImageRights.uz",
+    title: "ImageRights.uz — Raqamli dunyoda tasvir huquqlaringiz kafolati",
+    description:
+      "Tasvir huquqlarini hujjatlashtirish, dalillar ombori va huquqiy javob choralari — yagona platformada.",
   },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({
@@ -42,8 +44,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="uz" className={inter.variable}>
-      <body className="min-h-screen bg-white font-sans text-ink-900 antialiased">
-        {children}
+      <body className="font-sans">
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

@@ -1,39 +1,44 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Logo } from "@/components/ui/Logo";
+import { Suspense, useEffect } from "react";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { Alert, Skeleton } from "@/components/ui/primitives";
+import { setToken } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 
-function CallbackHandler() {
+/** OAuth (Google/OneID) muvaffaqiyatli yakunlangach token shu yerga keladi. */
+function Callback() {
   const router = useRouter();
-  const params = useSearchParams();
+  const token = useSearchParams().get("token");
+  const { refresh } = useAuth();
 
   useEffect(() => {
-    const token = params.get("token");
-    if (token) {
-      // Token JWT — keyingi API so‘rovlari uchun saqlanadi.
-      window.localStorage.setItem("imagerights_token", token);
-      router.replace("/dashboard");
-    } else {
-      router.replace("/auth/login");
-    }
-  }, [params, router]);
+    if (!token) return;
+    setToken(token);
+    void refresh().then(() => router.replace("/dashboard"));
+  }, [token, refresh, router]);
 
+  if (!token) {
+    return (
+      <AuthCard title="Kirish yakunlanmadi">
+        <Alert tone="error">
+          Token topilmadi. Iltimos, qaytadan urinib ko‘ring.
+        </Alert>
+      </AuthCard>
+    );
+  }
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6">
-      <Logo />
-      <div className="flex items-center gap-3 text-ink-600">
-        <span className="h-5 w-5 animate-spin rounded-full border-2 border-ink-200 border-t-brand-600" />
-        Tizimga kiritilmoqda...
-      </div>
-    </div>
+    <AuthCard title="Kirish yakunlanmoqda…">
+      <Skeleton className="h-12" />
+    </AuthCard>
   );
 }
 
-export default function AuthCallbackPage() {
+export default function CallbackPage() {
   return (
-    <Suspense fallback={null}>
-      <CallbackHandler />
+    <Suspense>
+      <Callback />
     </Suspense>
   );
 }

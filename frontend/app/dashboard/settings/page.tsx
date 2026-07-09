@@ -1,61 +1,133 @@
-import { User, Lock, Bell, CreditCard, ShieldCheck } from "lucide-react";
-import { PageHeader, Panel } from "@/components/dashboard/ui";
+"use client";
+
+import { useState } from "react";
+import { Download, Trash2 } from "lucide-react";
+import { PageHeader } from "@/components/layout/AppShell";
+import {
+  Alert,
+  Button,
+  Field,
+  Input,
+} from "@/components/ui/primitives";
+import { api, ApiError } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 
 export default function SettingsPage() {
+  const { user, logout } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+
+  async function exportData() {
+    setBusy("export");
+    setError(null);
+    try {
+      const data = await api<unknown>("/users/me/export");
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "imagerights-malumotlarim.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Eksportda xatolik");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function deleteAccount() {
+    setBusy("delete");
+    setError(null);
+    try {
+      await api("/users/me", {
+        method: "DELETE",
+        body: user?.provider === "EMAIL" ? { password: deletePassword } : {},
+      });
+      logout();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Akkaunt o‘chirilmadi");
+      setBusy(null);
+    }
+  }
+
+  const deleteEnabled =
+    deleteConfirmText === "OCHIRISH" &&
+    (user?.provider !== "EMAIL" || deletePassword.length > 0);
+
   return (
     <>
       <PageHeader
         title="Sozlamalar"
-        description="Hisob, xavfsizlik, bildirishnomalar va to‘lov sozlamalarini boshqaring."
+        description="Ma’lumotlaringiz ustidan nazorat: eksport va akkauntni o‘chirish."
       />
+      {error && <Alert tone="error">{error}</Alert>}
 
-      <Panel title="Profil ma'lumotlari">
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="To‘liq ism" value="Dilnoza Karimova" icon={User} />
-          <Field label="Email" value="dilnoza@email.com" icon={User} />
-          <Field label="Telefon" value="+998 90 123 45 67" icon={User} />
-          <Field label="OneID holati" value="Tasdiqlangan" icon={ShieldCheck} />
-        </div>
-        <button className="btn-primary mt-6">Saqlash</button>
-      </Panel>
+      <div className="max-w-2xl space-y-6">
+        <section className="card" aria-labelledby="export-title">
+          <h2 id="export-title" className="font-semibold text-ink-900">
+            Ma’lumotlarni eksport qilish
+          </h2>
+          <p className="mt-2 text-sm text-ink-600">
+            Profil, tasvirlar reyestri, hisobotlar, hujjatlar va
+            bildirishnomalaringizning to‘liq nusxasini JSON formatida yuklab
+            oling.
+          </p>
+          <Button
+            variant="secondary"
+            className="mt-4"
+            onClick={() => void exportData()}
+            loading={busy === "export"}
+          >
+            <Download className="h-4 w-4" aria-hidden /> Ma’lumotlarimni yuklab olish
+          </Button>
+        </section>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Toggle icon={Lock} title="Ikki bosqichli autentifikatsiya" desc="Hisobingizni qo‘shimcha himoyalang." on />
-        <Toggle icon={Bell} title="Email bildirishnomalar" desc="Yangi xavf aniqlanганda xabardor bo‘ling." on />
-        <Toggle icon={CreditCard} title="Avtomatik to‘lov" desc="Professional reja har oy yangilanadi." />
+        <section className="card border-red-200" aria-labelledby="delete-title">
+          <h2 id="delete-title" className="font-semibold text-red-700">
+            Akkauntni o‘chirish
+          </h2>
+          <p className="mt-2 text-sm text-ink-600">
+            Akkaunt o‘chirilganda shaxsiy ma’lumotlaringiz anonimlashtiriladi va
+            tizimga kirish imkoni yopiladi. Ochilgan ishlar bo‘yicha yozuvlar
+            huquqiy arxiv sifatida saqlanib qolishi mumkin. Bu amalni bekor
+            qilib bo‘lmaydi.
+          </p>
+          <div className="mt-4 space-y-4">
+            {user?.provider === "EMAIL" && (
+              <Field label="Parolingiz" htmlFor="deletePassword" required>
+                <Input
+                  id="deletePassword"
+                  type="password"
+                  autoComplete="current-password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                />
+              </Field>
+            )}
+            <Field
+              label='Tasdiqlash uchun "OCHIRISH" deb yozing'
+              htmlFor="deleteConfirm"
+              required
+            >
+              <Input
+                id="deleteConfirm"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+              />
+            </Field>
+            <Button
+              variant="danger"
+              disabled={!deleteEnabled}
+              loading={busy === "delete"}
+              onClick={() => void deleteAccount()}
+            >
+              <Trash2 className="h-4 w-4" aria-hidden /> Akkauntni butunlay o‘chirish
+            </Button>
+          </div>
+        </section>
       </div>
     </>
-  );
-}
-
-function Field({ label, value, icon: Icon }: { label: string; value: string; icon: typeof User }) {
-  return (
-    <div>
-      <label className="mb-1.5 block text-sm font-medium text-ink-700">{label}</label>
-      <div className="relative">
-        <Icon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
-        <input
-          defaultValue={value}
-          className="w-full rounded-xl border border-ink-200 bg-white py-3 pl-10 pr-4 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
-        />
-      </div>
-    </div>
-  );
-}
-
-function Toggle({ icon: Icon, title, desc, on }: { icon: typeof Lock; title: string; desc: string; on?: boolean }) {
-  return (
-    <div className="rounded-3xl border border-ink-100 bg-white p-5 shadow-card">
-      <div className="flex items-start justify-between">
-        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
-          <Icon className="h-5 w-5" />
-        </span>
-        <span className={`flex h-6 w-11 items-center rounded-full p-1 transition ${on ? "bg-brand-600" : "bg-ink-200"}`}>
-          <span className={`h-4 w-4 rounded-full bg-white transition ${on ? "translate-x-5" : ""}`} />
-        </span>
-      </div>
-      <h3 className="mt-4 font-semibold text-ink-900">{title}</h3>
-      <p className="mt-1 text-sm text-ink-500">{desc}</p>
-    </div>
   );
 }
